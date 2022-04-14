@@ -2,11 +2,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using my_books_v2.Data;
+using my_books_v2.Data.Services;
+using my_books_v2.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +20,12 @@ namespace my_books_v2
 {
     public class Startup
     {
+        public string ConnectionString { get; set; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            ConnectionString = Configuration.GetConnectionString("DefaultConnectionString");
         }
 
         public IConfiguration Configuration { get; }
@@ -28,6 +35,14 @@ namespace my_books_v2
         {
 
             services.AddControllers();
+
+            services.AddDbContext<AppDBContext>(options => options.UseSqlServer(ConnectionString));
+
+            services.AddTransient<BookService>();
+            services.AddTransient<AuthorService>();
+            services.AddTransient<PublishersService>();
+
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "my_books_v2", Version = "v1" });
@@ -50,10 +65,16 @@ namespace my_books_v2
 
             app.UseAuthorization();
 
+            //Exception handling
+            app.ConfigureBuildInExceptionHandler();
+            //app.configureCustomExtensionBuilder();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            //AppDbInitializer.Seed(app);
         }
     }
 }
