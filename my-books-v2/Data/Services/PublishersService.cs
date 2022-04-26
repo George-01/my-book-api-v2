@@ -1,4 +1,5 @@
 ﻿using my_books_v2.Data.Models;
+using my_books_v2.Data.Paging;
 using my_books_v2.Data.ViewModels;
 using my_books_v2.Exceptions;
 using System;
@@ -32,6 +33,35 @@ namespace my_books_v2.Data.Services
 
             return _publisher;
         }
+
+        public List<Publisher> GetAllPublishers(string sortBy, string searchString, int? pageNumber)
+        {
+            var allPublishers = _context.Publishers.OrderBy(n => n.Name).ToList();
+
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy)
+                {
+                    case "name_desc":
+                        allPublishers = allPublishers.OrderByDescending(n => n.Name).ToList();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                allPublishers = allPublishers.Where(n => n.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            }
+
+            //pagination
+            int pageSize = 5;
+            allPublishers = PaginatedList<Publisher>.Create(allPublishers.AsQueryable(), pageNumber ?? 1, pageSize);
+
+            return allPublishers;
+        }
+        
 
         public Publisher GetPublisherById(int id) => _context.Publishers.FirstOrDefault(n => n.Id == id);
 

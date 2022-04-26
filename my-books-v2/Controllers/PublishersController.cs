@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using my_books_v2.Data.Models;
 using my_books_v2.Data.Services;
 using my_books_v2.Data.ViewModels;
 using my_books_v2.Exceptions;
@@ -18,6 +19,22 @@ namespace my_books_v2.Controllers
         public PublihersController(PublishersService publishersService)
         {
             _publishersService = publishersService;
+        }
+
+
+
+        [HttpGet("get-all-publishers")]
+        public IActionResult GetAllPublishers(string sortBy, string searchString, int pageNumber)
+        {
+            try
+            {
+                var _result = _publishersService.GetAllPublishers(sortBy, searchString, pageNumber);
+                return Ok(_result);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Sorry, we could not load Publishers.");
+            }
         }
 
         [HttpPost("add-publisher")]
